@@ -12,7 +12,7 @@
     RootModule = 'PSCoreApplicationInsights.psm1'
 
     # Version number of this module.
-    ModuleVersion        = '0.1.0'
+    ModuleVersion        = '0.0.1'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -24,10 +24,10 @@
     Author               = 'leonboers@gmail.com'
 
     # Company or vendor of this module
-    #CompanyName          = ''
+    CompanyName          = 'unknown'
 
     # Copyright statement for this module
-    Copyright            = '(c) 2022 Léon Boers. All rights reserved.'
+    Copyright            = '(c) Léon Boers. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description          = 'A module to simplify working with the Powershell Core 7 Application Insights implementation.'
@@ -104,9 +104,10 @@
 
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags       = @(
-                "Powershell Core",
-                "Application Insights"
-                "Logging"
+                "PowershellCore",
+                "ApplicationInsights"
+                "Logging",
+                "PWSH"
             )
 
             # A URL to the license for this module.
