@@ -2,6 +2,12 @@
 
 A Powershell Core Module that simplifies logging to Application Insights
 
+## Installation
+
+```powershell
+Install-Module -Name PSCoreApplicationInsights
+```
+
 ## TODO:
 
 - [ ] Automate Deployment
