@@ -9,7 +9,7 @@
 @{
 
     # Script module or binary module file associated with this manifest.
-    # RootModule = 'PSCoreApplicationInsights.psd1'
+    RootModule = 'PSCoreApplicationInsights.psm1'
 
     # Version number of this module.
     ModuleVersion        = '1.0.0'
@@ -24,10 +24,10 @@
     Author               = 'leonboers@gmail.com'
 
     # Company or vendor of this module
-    CompanyName          = ''
+    #CompanyName          = ''
 
     # Copyright statement for this module
-    Copyright            = '(c) Léon Boers. All rights reserved.'
+    Copyright            = '(c) 2022 Léon Boers. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description          = 'A module to simplify working with the Powershell Core 7 Application Insights implementation.'
@@ -70,7 +70,13 @@
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport    = @(
-        'New-ApplicationInsightsClient'
+        'New-ApplicationInsightsClient',
+        'Set-ApplicationInsightsClientInformation',
+        'Write-ApplicationInsightsTrace',
+        'Write-ApplicationInsightsMetric',
+        'Write-ApplicationInsightsException',
+        'Write-ApplicationInsightsRequest',
+        'Invoke-ApplicationInsightsMeasuredCommand'
     )
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.

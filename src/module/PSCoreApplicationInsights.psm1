@@ -112,7 +112,7 @@ function Set-ApplicationInsightsClientInformation {
 
 }
 
-# Export-ModuleMember -Function Set-ApplicationInsightsClientInformation
+Export-ModuleMember -Function Set-ApplicationInsightsClientInformation
 
 function Write-ApplicationInsightsTrace {
     [CmdletBinding()]
@@ -157,7 +157,7 @@ function Write-ApplicationInsightsTrace {
     }
 }
 
-# Export-ModuleMember -Function Write-ApplicationInsightsTrace
+Export-ModuleMember -Function Write-ApplicationInsightsTrace
 
 function Write-ApplicationInsightsMetric {
     [CmdletBinding()]
@@ -198,7 +198,7 @@ function Write-ApplicationInsightsMetric {
     }
 }
 
-# Export-ModuleMember -Function Write-ApplicationInsightsMetric
+Export-ModuleMember -Function Write-ApplicationInsightsMetric
 function Write-ApplicationInsightsException {
     [CmdletBinding(DefaultParameterSetName = "Exception")]
     param (
@@ -239,7 +239,7 @@ function Write-ApplicationInsightsException {
     }
 }
 
-# Export-ModuleMember -Function Write-ApplicationInsightsException
+Export-ModuleMember -Function Write-ApplicationInsightsException
 
 function Write-ApplicationInsightsRequest {
     [CmdletBinding()]
@@ -315,7 +315,7 @@ function Write-ApplicationInsightsRequest {
     }
 }
 
-# Export-ModuleMember -Function Write-ApplicationInsightsRequest
+Export-ModuleMember -Function Write-ApplicationInsightsRequest
 Function Invoke-ApplicationInsightsMeasuredCommand {
     [CmdletBinding()]
     param (
@@ -362,4 +362,4 @@ Function Invoke-ApplicationInsightsMeasuredCommand {
     }
 }
 
-# Export-ModuleMember -Function Invoke-ApplicationInsightsMeasuredCommand
+Export-ModuleMember -Function Invoke-ApplicationInsightsMeasuredCommand
