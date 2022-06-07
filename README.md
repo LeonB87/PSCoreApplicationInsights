@@ -22,10 +22,16 @@ $client = New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9
 
 ## Sending Trace information application insights
 
+Command:
+
+```powershell
+Write-ApplicationInsightsTrace [-Client] <TelemetryClient> [-Message] <String> [[-SeverityLevel] <String>] [[-properties] <Dictionary`2>] [<CommonParameters>]
+```
+
 | Property | Description | Mandatory | default | Allowed Values |
 | ---| ---| --- | --- | --- |
 | Message | | true | | |
-| SeverityLevel | The severity level of the trace | false | Information | - Information <br /> - Verbose <br /> - Warning <br /> - Error <br /> - Critical |
+| SeverityLevel | The severity level of the trace | false | Information | - Information <br> - Verbose <br> - Warning <br> - Error <br> - Critical |
 | properties | a Dictionary<string,string> with custom properties that will be added as "customDimensions"| false | |
 
 ### Example 1
