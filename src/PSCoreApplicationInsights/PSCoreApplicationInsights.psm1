@@ -115,6 +115,40 @@ function Set-ApplicationInsightsClientInformation {
 Export-ModuleMember -Function Set-ApplicationInsightsClientInformation
 
 function Write-ApplicationInsightsTrace {
+    <#
+    .SYNOPSIS
+    Write a simple Trace message to the Application Insights service.
+
+    .DESCRIPTION
+    Write a simple Trace message to the Application Insights service. Supports several Seveity levels
+
+    .PARAMETER Client
+    The Application Insights client you want to use to send the message to Application Insights.
+
+    .PARAMETER Message
+    The message you want to send to Application Insights.
+
+    .PARAMETER SeverityLevel
+    The severity level of the message. Default is 'Information'.
+
+    Allowed values: 'Verbose', 'Information', 'Warning', 'Error', 'Critical'
+
+    .PARAMETER properties
+    A Dictionary of properties you want to send with the message.
+
+    .EXAMPLE
+    Write-ApplicationInsightsTrace -Client $client -Message "This is a test message as Critical" -SeverityLevel "Critical"
+
+    .EXAMPLE
+
+    $properties = [System.Collections.Generic.Dictionary[string, string]]::new()
+
+    $properties.Add("target", "azkv-powershell-001")
+    $properties.Add("type", "Keyvault")
+
+    Write-ApplicationInsightsTrace -Client $client -Message "Created new keyvault" -SeverityLevel "Information" -properties $properties
+
+    #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true)]
