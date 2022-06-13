@@ -7,8 +7,8 @@ function New-ApplicationInsightsClient {
         $InstrumentationKey
     )
 
-    $Client = [Microsoft.ApplicationInsights.TelemetryClient]::new()
-    $Client.InstrumentationKey = $InstrumentationKey
+    $global:AIClient = [Microsoft.ApplicationInsights.TelemetryClient]::new()
+    $global:AIClient.InstrumentationKey = $InstrumentationKey
 
     $defaultUserInformation = @{
         AuthenticatedUserId = whoami
@@ -20,19 +20,28 @@ function New-ApplicationInsightsClient {
 
     }
 
-    $client = Set-ApplicationInsightsClientInformation -UserInformation $defaultUserInformation -DeviceInformation $defaultDeviceInformation -Client $Client
+    $global:AIClient = Set-ApplicationInsightsClientInformation -UserInformation $defaultUserInformation -DeviceInformation $defaultDeviceInformation -Client $global:AIClient
 
-    return $Client
+    return $global:AIClient
 }
 
 Export-ModuleMember -Function New-ApplicationInsightsClient
 function Confirm-ApplicationInsightsClient {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [Microsoft.ApplicationInsights.TelemetryClient]
         $Client
     )
+
+    if ($null -eq $Client) {
+        if ($null -eq $Global:AIClient) {
+            write-error ("no application insights client found")
+        } else {
+            $client = $Global:AIClient
+        }
+    }
+
 
     [bool] $isValid = $true
     Write-Verbose ("Checking if the Application Insights Client is valid...")
@@ -151,7 +160,7 @@ function Write-ApplicationInsightsTrace {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [Microsoft.ApplicationInsights.TelemetryClient]
         $Client,
 
@@ -170,6 +179,14 @@ function Write-ApplicationInsightsTrace {
     )
     BEGIN {
         Write-Verbose ("Received '$($SeverityLevel)' severity level for the message '$($Message)'")
+
+        if ($null -eq $client) {
+            if ($null -eq $global:AIClient) {
+                write-error ("No Application insight client defined.")
+            } else {
+                $client = $global:AIClient
+            }
+        }
 
         if ($properties.Count -ge 1) {
             Write-Verbose ("Received '$($properties.Count)' properties to add to the message.")
