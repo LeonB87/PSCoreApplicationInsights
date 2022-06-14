@@ -7,8 +7,8 @@ function New-ApplicationInsightsClient {
         $InstrumentationKey
     )
 
-    $Client = [Microsoft.ApplicationInsights.TelemetryClient]::new()
-    $Client.InstrumentationKey = $InstrumentationKey
+    $global:AIClient = [Microsoft.ApplicationInsights.TelemetryClient]::new()
+    $global:AIClient.InstrumentationKey = $InstrumentationKey
 
     $defaultUserInformation = @{
         AuthenticatedUserId = whoami
@@ -20,19 +20,29 @@ function New-ApplicationInsightsClient {
 
     }
 
-    $client = Set-ApplicationInsightsClientInformation -UserInformation $defaultUserInformation -DeviceInformation $defaultDeviceInformation -Client $Client
+    $global:AIClient = Set-ApplicationInsightsClientInformation -UserInformation $defaultUserInformation -DeviceInformation $defaultDeviceInformation -Client $global:AIClient
 
-    return $Client
+    return $global:AIClient
 }
 
 Export-ModuleMember -Function New-ApplicationInsightsClient
 function Confirm-ApplicationInsightsClient {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [Microsoft.ApplicationInsights.TelemetryClient]
         $Client
     )
+
+    if ($null -eq $client) {
+        if ($null -eq $global:AIClient) {
+            write-error ("No Application insight client defined. Please use 'New-ApplicationInsightsClient' to create one.")
+            return;
+        } else {
+            $client = $global:AIClient
+        }
+    }
+
 
     [bool] $isValid = $true
     Write-Verbose ("Checking if the Application Insights Client is valid...")
@@ -151,7 +161,7 @@ function Write-ApplicationInsightsTrace {
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [Microsoft.ApplicationInsights.TelemetryClient]
         $Client,
 
@@ -171,6 +181,15 @@ function Write-ApplicationInsightsTrace {
     BEGIN {
         Write-Verbose ("Received '$($SeverityLevel)' severity level for the message '$($Message)'")
 
+        if ($null -eq $client) {
+            if ($null -eq $global:AIClient) {
+                write-error ("No Application insight client defined. Please use 'New-ApplicationInsightsClient' to create one.")
+                return;
+            } else {
+                $client = $global:AIClient
+            }
+        }
+
         if ($properties.Count -ge 1) {
             Write-Verbose ("Received '$($properties.Count)' properties to add to the message.")
         }
@@ -180,14 +199,16 @@ function Write-ApplicationInsightsTrace {
     PROCESS {
         if ($properties.Count -ge 1) {
             $Client.TrackTrace($Message, [Microsoft.ApplicationInsights.DataContracts.SeverityLevel]::$($SeverityLevel), $properties)
+            Write-Verbose ("Sent message '$($Message)' with '$($properties.Count)' properties to Application Insights.")
         }
         else {
             $Client.TrackTrace($Message, [Microsoft.ApplicationInsights.DataContracts.SeverityLevel]::$($SeverityLevel))
+            Write-Verbose ("Sent message '$($Message)' to Application Insights.")
         }
-
     }
     END {
         $Client.Flush()
+        Write-Verbose ("Client Flushed")
     }
 }
 
@@ -196,7 +217,7 @@ Export-ModuleMember -Function Write-ApplicationInsightsTrace
 function Write-ApplicationInsightsMetric {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [Microsoft.ApplicationInsights.TelemetryClient]
         $Client,
 
@@ -214,6 +235,15 @@ function Write-ApplicationInsightsMetric {
     )
     BEGIN {
 
+        if ($null -eq $client) {
+            if ($null -eq $global:AIClient) {
+                write-error ("No Application insight client defined. Please use 'New-ApplicationInsightsClient' to create one.")
+                return;
+            } else {
+                $client = $global:AIClient
+            }
+        }
+
         if ($properties.Count -ge 1) {
             Write-Verbose ("Received '$($properties.Count)' properties to add to the message.")
         }
@@ -221,14 +251,17 @@ function Write-ApplicationInsightsMetric {
     PROCESS {
         if ($properties.Count -ge 1) {
             $client.TrackMetric($name, $Metric, $properties)
+            Write-Verbose ("Sent metric '$($Name)' with '$($Metric)' value and '$($properties.Count)' properties to Application Insights.")
         }
         else {
             $client.TrackMetric($name, $Metric)
+            Write-Verbose ("Sent metric '$($Name)' with '$($Metric)' value to Application Insights.")
         }
 
     }
     END {
         $Client.Flush()
+        Write-Verbose ("Client Flushed")
     }
 }
 
@@ -236,7 +269,7 @@ Export-ModuleMember -Function Write-ApplicationInsightsMetric
 function Write-ApplicationInsightsException {
     [CmdletBinding(DefaultParameterSetName = "Exception")]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [Microsoft.ApplicationInsights.TelemetryClient]
         $Client,
 
@@ -259,17 +292,26 @@ function Write-ApplicationInsightsException {
     BEGIN {
         Write-Verbose ("Running in Parameterset '$($PSCmdlet.ParameterSetName)'")
 
+        if ($null -eq $client) {
+            if ($null -eq $global:AIClient) {
+                write-error ("No Application insight client defined. Please use 'New-ApplicationInsightsClient' to create one.")
+                return;
+            } else {
+                $client = $global:AIClient
+            }
+        }
+
         if ($PSCmdlet.ParameterSetName -eq "StringException") {
             $Exception = [System.Exception]::new($ExceptionString)
         }
     }
     PROCESS {
         $client.TrackException($Exception, $properties, $Metrics)
-
-        $client.TrackExce
+        Write-Verbose ("Sent exception '$($Exception)' with '$($Metrics.Count)' metrics and '$($properties.Count)' properties to Application Insights.")
     }
     END {
         $Client.Flush()
+        Write-Verbose ("Client Flushed")
     }
 }
 
@@ -278,6 +320,10 @@ Export-ModuleMember -Function Write-ApplicationInsightsException
 function Write-ApplicationInsightsRequest {
     [CmdletBinding()]
     param (
+        [Parameter(Mandatory = $false)]
+        [Microsoft.ApplicationInsights.TelemetryClient]
+        $Client,
+
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [String]
@@ -318,6 +364,16 @@ function Write-ApplicationInsightsRequest {
         Write-Verbose ("Received '$($Duration)' duration for the request")
         Write-Verbose ("Received '$($responseCode)' response code for the request")
         Write-Verbose ("Received '$($success)' success for the request")
+
+        if ($null -eq $client) {
+            if ($null -eq $global:AIClient) {
+                write-error ("No Application insight client defined. Please use 'New-ApplicationInsightsClient' to create one.")
+                return;
+            } else {
+                $client = $global:AIClient
+            }
+        }
+
     }
     PROCESS {
 
@@ -343,9 +399,11 @@ function Write-ApplicationInsightsRequest {
         }
 
         $client.TrackRequest($requestTelemetry)
+
     }
     END {
         $Client.Flush()
+        Write-Verbose ("Client Flushed")
     }
 }
 
@@ -353,6 +411,10 @@ Export-ModuleMember -Function Write-ApplicationInsightsRequest
 Function Invoke-ApplicationInsightsMeasuredCommand {
     [CmdletBinding()]
     param (
+        [Parameter(Mandatory = $false)]
+        [Microsoft.ApplicationInsights.TelemetryClient]
+        $Client,
+
         [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [scriptblock]
@@ -364,6 +426,16 @@ Function Invoke-ApplicationInsightsMeasuredCommand {
         $name
     )
     BEGIN {
+
+        if ($null -eq $client) {
+            if ($null -eq $global:AIClient) {
+                write-error ("No Application insight client defined. Please use 'New-ApplicationInsightsClient' to create one.")
+                return;
+            } else {
+                $client = $global:AIClient
+            }
+        }
+
         Write-Verbose ("Received '$($name)' name for the command")
     }
     PROCESS {
@@ -388,10 +460,12 @@ Function Invoke-ApplicationInsightsMeasuredCommand {
 
         $duration = New-TimeSpan -Start $startDate -End $endDate
 
-        Write-Verbose ("Received '$($duration)' duration for the command")
+        Write-Verbose ("Received '$($duration)' as duration for the command")
         Write-ApplicationInsightsRequest -Name $name -StartTime $startDate -Duration $duration -responseCode $statusCode -success $success
     }
     END {
+        $Client.Flush()
+        Write-Verbose ("Client Flushed")
         return $retVal
     }
 }
