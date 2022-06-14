@@ -14,7 +14,16 @@ Install-Module -Name PSCoreApplicationInsights
 ## Basic Usage
 
 Create a new Application Insights Client
+
+```powershell
+New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9eac-000000000000
+```
+
 > Use the Instrumentation Key found in the Azure Portal on your Application Insights Instance.
+
+The Application Insights client is stored as $global:AIClient.
+
+to store the client in a variable to specify when writing logs:
 
 ```powershell
 $client = New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9eac-000000000000
@@ -25,19 +34,20 @@ $client = New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9
 Command:
 
 ```powershell
-Write-ApplicationInsightsTrace [-Client] <TelemetryClient> [-Message] <String> [[-SeverityLevel] <String>] [[-properties] <Dictionary`2>] [<CommonParameters>]
+Write-ApplicationInsightsTrace [[-Client] <TelemetryClient>] [-Message] <String> [[-SeverityLevel] <String>] [[-properties] <Dictionary`2>] [<CommonParameters>]
 ```
 
 | Property | Description | Mandatory | default | Allowed Values |
 | ---| ---| --- | --- | --- |
-| Message | | true | | |
+| Message |  | true | | |
+| Client | The Application Insights client to write the message to. If not specifies, uses the $global:AIclient  | false | | |
 | SeverityLevel | The severity level of the trace | false | Information | - Information <br> - Verbose <br> - Warning <br> - Error <br> - Critical |
 | properties | a Dictionary<string,string> with custom properties that will be added as "customDimensions"| false | |
 
 ### Example 1
 
 ```powershell
-Write-ApplicationInsightsTrace -Client $client -Message "This is a test message as Critical" -SeverityLevel "Critical"
+Write-ApplicationInsightsTrace -Message "This is a test message as Critical" -SeverityLevel "Critical"
 ```
 
 Result:
