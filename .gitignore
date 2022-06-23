@@ -348,3 +348,12 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+.local/.markdown/about_topic_name.md
+.local/.markdown/Invoke-ApplicationInsightsMeasuredCommand.md
+.local/.markdown/New-ApplicationInsightsClient.md
+.local/.markdown/PsCoreApplicationInsights.md
+.local/.markdown/Set-ApplicationInsightsClientInformation.md
+.local/.markdown/Write-ApplicationInsightsException.md
+.local/.markdown/Write-ApplicationInsightsMetric.md
+.local/.markdown/Write-ApplicationInsightsRequest.md
+.local/.markdown/Write-ApplicationInsightsTrace.md

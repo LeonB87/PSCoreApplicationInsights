@@ -1,6 +1,6 @@
 # PSCoreApplicationInsightst
 
-> Powershell logging to Azure Application Insights
+> Powershell logging to Azure Application Insight
 
 A Powershell Core Module that simplifies logging to Application Insights. This uses the Built-in Telemetry client from Powershell Core 7 and it is built entirely in Powershell.
 It offers a few simple functions to log information to Application Insights to reduce the clutter in your scripts.
@@ -15,15 +15,15 @@ Install-Module -Name PSCoreApplicationInsights
 
 Create a new Application Insights Client
 
-```powershell
-New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9eac-000000000000
 ```
-
+New-ApplicationInsightsClient [-InstrumentationKey] <Guid> [-WhatIf] [-Confirm] [<CommonParameters>]
+```
 > Use the Instrumentation Key found in the Azure Portal on your Application Insights Instance.
 
 The Application Insights client is stored as $global:AIClient.
 
 to store the client in a variable to specify when writing logs:
+
 
 ```powershell
 $client = New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9eac-000000000000
@@ -31,10 +31,10 @@ $client = New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9
 
 ## Sending Trace information application insights
 
-Command:
+### Syntax
 
 ```powershell
-Write-ApplicationInsightsTrace [[-Client] <TelemetryClient>] [-Message] <String> [[-SeverityLevel] <String>] [[-properties] <Dictionary`2>] [<CommonParameters>]
+Write-ApplicationInsightsTrace [[-Client] <TelemetryClient>] [-Message] <String> [[-SeverityLevel] <String>] [[-properties] <System.Collections.Generic.Dictionary`2[System.String,System.String]>] [<CommonParameters>]
 ```
 
 | Property | Description | Mandatory | default | Allowed Values |
@@ -57,12 +57,12 @@ Result:
 ### Example 2
 
 ```powershell
-    $properties = [System.Collections.Generic.Dictionary[string, string]]::new()
+$properties = [System.Collections.Generic.Dictionary[string, string]]::new()
 
-    $properties.Add("target", "azkv-powershell-001")
-    $properties.Add("type", "Keyvault")
+$properties.Add("target", "azkv-powershell-001")
+$properties.Add("type", "Keyvault")
 
-    Write-ApplicationInsightsTrace -Client $client -Message "Created new keyvault" -SeverityLevel "Information" -properties $properties
+Write-ApplicationInsightsTrace -Client $client -Message "Created new keyvault" -SeverityLevel "Information" -properties $properties
 ```
 
 Result:
