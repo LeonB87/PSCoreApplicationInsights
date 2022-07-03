@@ -8,5 +8,8 @@
             "language": "powershell",
             "scheme": "file"
         }
-    ]
+    ],
+    "files.associations": {
+        "*.yaml": "home-assistant"
+    }
 }
