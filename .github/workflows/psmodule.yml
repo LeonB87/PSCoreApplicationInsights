@@ -46,7 +46,7 @@ jobs:
         with:
           report_name: module_tests
           report_title: Application Insights Module Tests
-          github_token: ${{ secrets.PESTER_MODULE }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Test Results Quick Overview
         shell: pwsh
         run: |
