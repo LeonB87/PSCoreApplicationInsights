@@ -1,5 +1,7 @@
 # PSCoreApplicationInsightst
 
+[![ApplicationInsights Module](https://github.com/LeonB87/PSCoreApplicationInsights/actions/workflows/psmodule.yml/badge.svg)](https://github.com/LeonB87/PSCoreApplicationInsights/actions/workflows/psmodule.yml)
+
 > Powershell logging to Azure Application Insight
 
 A Powershell Core Module that simplifies logging to Application Insights. This uses the Built-in Telemetry client from Powershell Core 7 and it is built entirely in Powershell.

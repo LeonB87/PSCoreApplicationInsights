@@ -32,6 +32,8 @@ PROCESS {
 
     invoke-scriptanalyzer -Path .\src\PSCoreApplicationInsights\ -ReportSummary -ExcludeRule 'PSAvoidGlobalVars'
 
+    Invoke-Pester -output Detailed
+
 }
 END {
     Write-Host '## Ending the local run of the analyzer scripts!' -ForegroundColor DarkBlue
