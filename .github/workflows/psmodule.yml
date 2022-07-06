@@ -36,17 +36,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: results.sarif
-      # - name: pester-tests-report
-      #   # You may pin to the exact commit or the version.
-      #   # uses: zyborg/pester-tests-report@bb711b31e93f78f7423086d57f81928325829765
-      #   uses: zyborg/pester-tests-report@v1.5.0
-      #   with:
-      #     report_name: module_tests
-      #     report_title: Application Insights Module Tests
-      #     github_token: ${{ secrets.GITHUB_TOKEN }}
-      # - name: Test Results Quick Overview
-      #   shell: pwsh
-      #   run: |
-      #     Write-Host 'Total Tests Executed...:  ${{ steps.test_module.outputs.total_count }}'
-      #     Write-Host 'Total Tests PASSED.....:  ${{ steps.test_module.outputs.passed_count }}'
-      #     Write-Host 'Total Tests FAILED.....:  ${{ steps.test_module.outputs.failed_count }}'
+      - name: Perform pestertest
+        shell: pwsh
+        run: |
+          Invoke-Pester -path .\ -Passthru
