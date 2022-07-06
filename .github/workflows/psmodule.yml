@@ -9,6 +9,13 @@ on:
   pull_request:
     branches: [ "main", "development" ]
   workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+      tags:
+        description: 'Test scenario tags'
 
 permissions:
   contents: read
@@ -39,4 +46,4 @@ jobs:
       - name: Perform pestertest
         shell: pwsh
         run: |
-          Invoke-Pester -path .\ -Passthru
+          Invoke-Pester -path .\ -Passthru -CI
