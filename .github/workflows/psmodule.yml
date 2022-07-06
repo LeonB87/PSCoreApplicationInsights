@@ -5,7 +5,7 @@ name: ApplicationInsights Module
 # Controls when the workflow will run
 on:
   push:
-    branches: [ "main", "development" ]
+    branches: [ "main", "development", "pester" ]
   pull_request:
     branches: [ "main", "development" ]
   workflow_dispatch:
