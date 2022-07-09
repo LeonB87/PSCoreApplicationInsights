@@ -53,6 +53,9 @@ Boolean whether to add links in the Summary page to the specific Powershell MD f
         Write-Output ("moduleFolder                 : $($moduleFolder)")
         Write-Output ("OutputFolder                 : $($OutputFolder)")
 
+        $arrParameterProperties = @('DefaultValue', 'PipelineInput', 'Position', 'Required', 'parameterSetName')
+        $arrSkippedParameters = @('WhatIf', 'Confirm')
+
     }
     PROCESS {
         try {
@@ -86,13 +89,6 @@ Boolean whether to add links in the Summary page to the specific Powershell MD f
 
                 ("## $($help.name)`r") | Out-File $outputFile -Append
 
-                if ($help.syntax) {
-                    ("`r``````PowerShell`r $($help.syntax)`r``````") | Out-File -FilePath $outputFile -Append
-                }
-                else {
-                    Write-Warning ("Syntax not defined in file '$($function)'")
-                }
-
                 if ($help.description){
                     ("### Description`r") | Out-File $outputFile -Append
 
@@ -100,6 +96,16 @@ Boolean whether to add links in the Summary page to the specific Powershell MD f
 
                 } else {
                     Write-Warning ("Description not defined for function '$($function)'")
+                }
+
+                if ($help.syntax) {
+                    ("### Syntax`r") | Out-File $outputFile -Append
+
+                    $capturedGetHelpOutput = ($help.Syntax | Out-String).trim()
+                    ("`r``````PowerShell`r $($capturedGetHelpOutput)`r```````r") | Out-File -FilePath $outputFile -Append
+                }
+                else {
+                    Write-Warning ("Syntax not defined in file '$($function)'")
                 }
 
                 if ($help.Examples) {
@@ -117,7 +123,36 @@ Boolean whether to add links in the Summary page to the specific Powershell MD f
                     Write-Warning ("Description not defined for function '$($function)'")
                 }
 
+                if ($help.Parameters) {
+                    ("## Parameters`r") | Out-File -FilePath $outputFile -Append
+                    :parameterloop forEach ($item in $help.Parameters.Parameter) {
 
+                        if ($item.name -in $arrSkippedParameters){
+                            Write-Warning ("The item '$($item.name)' is in the skipped parameters list")
+                            continue parameterloop
+                        }
+
+                        ("### $($item.name)`r") | Out-File -FilePath $outputFile -Append
+                        if ($null -eq $item.description){
+                            Write-Warning ("Missing parameter description for '$($item.name)' ")
+                            continue parameterloop
+                        }
+                        $item.description[0].text | Out-File -FilePath $outputFile -Append
+                        ('| | |') | Out-File -FilePath $outputFile -Append
+                        ('|-|-|') | Out-File -FilePath $outputFile -Append
+                        ("| Type: | $($item.Type.Name) |") | Out-File -FilePath $outputFile -Append
+                        foreach ($arrParameterProperty in $arrParameterProperties) {
+                            if ($item.$arrParameterProperty) {
+                                ("| $arrParameterProperty : | $($item.$arrParameterProperty) |") | Out-File -FilePath $outputFile -Append
+                            }
+                        }
+                        ("`r") | Out-File -FilePath $outputFile -Append
+                    }
+
+                }
+                else {
+                    Write-Warning "Parameters not defined in file $($script.fullname)"
+                }
             }
 
         }

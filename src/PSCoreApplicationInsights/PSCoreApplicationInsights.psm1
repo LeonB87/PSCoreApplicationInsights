@@ -419,7 +419,7 @@ function Write-ApplicationInsightsRequest {
         [System.Collections.Generic.Dictionary[string, string]]
         $properties = [System.Collections.Generic.Dictionary[string, string]]::new(),
 
-        [Parameter(Mandatory = $false, HelpMessage = "This is the URL that will be added as 'url' in Application Insights")]
+        [Parameter(Mandatory = $false, HelpMessage = "This is the URL that will be added as 'url' property in Application Insights")]
         [ValidateNotNullOrEmpty()]
         [string]
         $url
@@ -436,8 +436,11 @@ function Write-ApplicationInsightsRequest {
                 write-error ("No Application insight client defined. Please use 'New-ApplicationInsightsClient' to create one.")
                 return;
             } else {
+                Write-Verbose ("Using global client")
                 $client = $global:AIClient
             }
+        } else {
+            Write-Verbose ("Using supplied client")
         }
 
     }
@@ -450,6 +453,9 @@ function Write-ApplicationInsightsRequest {
         $requestTelemetry.ResponseCode = $responseCode
         $requestTelemetry.Success = $success
         $requestTelemetry.Timestamp = $StartTime
+
+        $client.Context.Operation.Name = $Name
+        $client.Context.Operation.Id = [guid]::NewGuid().Guid
 
         if ($properties.Count -ge 1) {
             Write-Verbose ("Received '$($properties.Count)' properties to add to the request.")
@@ -464,6 +470,7 @@ function Write-ApplicationInsightsRequest {
             $requestTelemetry.Url = $url
         }
 
+        Write-Verbose ("Sending request telemetry")
         $client.TrackRequest($requestTelemetry)
 
     }
@@ -475,6 +482,26 @@ function Write-ApplicationInsightsRequest {
 
 Export-ModuleMember -Function Write-ApplicationInsightsRequest
 Function Invoke-ApplicationInsightsMeasuredCommand {
+    <#
+    .SYNOPSIS
+    Invoke a scriptblock that is measured by Application Insights.
+
+    .DESCRIPTION
+    Invoke a scriptblock that is measured by Application Insights. This created a timespan and writes the timing to Application Insights. The output of the scriptblock is returned.
+
+    .PARAMETER Client
+    The Application Insights Telemetry Client. Defaults to $global:AIClient
+
+    .PARAMETER scriptblock
+    The scriptblock you wish to execute and measure.
+
+    .PARAMETER name
+    This is a name you wish to give to the scriptblock. This is used to identify the scriptblock in Application Insights.
+
+    .EXAMPLE
+    Invoke-ApplicationInsightsMeasuredCommand -ScriptBlock { start-sleep -Milliseconds 150 } -Name "Performing task X"
+
+    #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)]

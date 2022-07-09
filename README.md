@@ -17,7 +17,7 @@ Install-Module -Name PSCoreApplicationInsights
 
 Create a new Application Insights Client
 
-```
+```powershell
 New-ApplicationInsightsClient [-InstrumentationKey] <Guid> [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 > Use the Instrumentation Key found in the Azure Portal on your Application Insights Instance.
@@ -25,7 +25,6 @@ New-ApplicationInsightsClient [-InstrumentationKey] <Guid> [-WhatIf] [-Confirm] 
 The Application Insights client is stored as $global:AIClient.
 
 to store the client in a variable to specify when writing logs:
-
 
 ```powershell
 $client = New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9eac-000000000000
@@ -71,6 +70,93 @@ Result:
 
 > ![image](https://user-images.githubusercontent.com/10503724/172466760-b0a0c258-3a77-4f8e-91ea-7b487bf05042.png)
 
+## Module Functions
+
+### New-ApplicationInsightsClient
+
+#### Description
+
+Create a new Application insights Client by supplying an Instrumentation Key of your Application Insights instance.
+
+#### Syntax
+
+
+```PowerShell
+ New-ApplicationInsightsClient [-InstrumentationKey] <Guid> [-WhatIf] [-Confirm] [<CommonParameters>]
+```
+
+#### Examples
+
+##### Example 1
+
+```PowerShell
+ New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9eac-000000000000
+```
+
+##### Example 2
+
+```PowerShell
+ $client = New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9eac-000000000000
+```
+
+### Parameters
+
+#### InstrumentationKey
+
+The Instrumentation Key of your Application Insights instance.
+| | |
+|-|-|
+| Type: | Guid |
+| PipelineInput : | false |
+| Position : | 1 |
+| Required : | true |
+
+### Invoke-ApplicationInsightsMeasuredCommand
+
+#### Description
+
+Invoke a scriptblock that is measured by Application Insights. This created a timespan and writes the timing to Application Insights. The output of the scriptblock is returned.
+
+#### Syntax
+
+```PowerShell
+ Invoke-ApplicationInsightsMeasuredCommand [[-Client] <TelemetryClient>] [-scriptblock] <ScriptBlock> [-name] <String> [<CommonParameters>]
+```
+
+#### Examples
+
+##### Example 1
+
+```PowerShell
+ Invoke-ApplicationInsightsMeasuredCommand -ScriptBlock { start-sleep -seconds 1 } -Name "slow script"
+```
+
+### Parameters
+
+#### Client
+
+The Application Insights Telemetry Client. Defaults to $global:AIClient
+| | |
+|-|-|
+| Type: | TelemetryClient |
+| PipelineInput : | false |
+| Position : | 1 |
+| Required : | false |
+
+### results
+
+Example Logs:
+
+> ![image](https://user-images.githubusercontent.com/10503724/178105199-b1a3f4d2-378f-43f9-a08a-3476486a411a.png)
+
+Example of the Performance blade
+
+> ![image](https://user-images.githubusercontent.com/10503724/178105139-e437806f-d563-4975-8296-a1d69b8f653d.png)
+
+Performance is shown on the Overview Blade
+
+![image](https://user-images.githubusercontent.com/10503724/178105334-7b62225a-d82f-433b-b158-bf9bce5e432e.png)
+
 ## TODO
 
 - [ ] Automate Deployment
@@ -81,5 +167,5 @@ Result:
   - [ ] Sending Metric
   - [ ] Sending Exception
   - [ ] Sending Request
-  - [ ] Invoking Measured Command
+  - [x] Invoking Measured Command
 - [ ] Create an example azure dashboard
