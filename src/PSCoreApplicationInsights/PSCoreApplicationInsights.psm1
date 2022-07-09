@@ -1,5 +1,28 @@
 function New-ApplicationInsightsClient {
-    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+    Create a new Application insights Client
+
+    .DESCRIPTION
+    Create a new Application insights Client by supplying an Instrumentation Key of your Application Insights instance.
+
+    .PARAMETER InstrumentationKey
+    The Instrumentation Key of your Application Insights instance.
+
+    .EXAMPLE
+    New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9eac-000000000000
+
+    Create a new Application Insights Telemetry Client and store it in $global:AIClient
+
+    .EXAMPLE
+    $client = New-ApplicationInsightsClient -InstrumentationKey c323cf10-da34-4a73-9eac-000000000000
+
+    Create a new Application Insights Telemetry Client and store it in a variable.
+
+    .NOTES
+    General notes
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [Parameter(Mandatory = $true, HelpMessage = "The Application Insights Instrumentation Key that is used to send the messages to the correct Application Insights Instance.")]
         [ValidateNotNullOrEmpty()]
@@ -7,8 +30,14 @@ function New-ApplicationInsightsClient {
         $InstrumentationKey
     )
 
-    $global:AIClient = [Microsoft.ApplicationInsights.TelemetryClient]::new()
-    $global:AIClient.InstrumentationKey = $InstrumentationKey
+
+    if ($PSCmdlet.ShouldProcess([Microsoft.ApplicationInsights.TelemetryClient], "New")) {
+        $global:AIClient = [Microsoft.ApplicationInsights.TelemetryClient]::new()
+    }
+
+    if ($PSCmdlet.ShouldProcess('$global:AIClient', "Set InstrumentationKey")) {
+        $global:AIClient.InstrumentationKey = $InstrumentationKey
+    }
 
     $defaultUserInformation = @{
         AuthenticatedUserId = whoami
@@ -17,10 +46,11 @@ function New-ApplicationInsightsClient {
 
     $defaultDeviceInformation = @{
         OperatingSystem = $psversiontable.OS
-
     }
 
-    $global:AIClient = Set-ApplicationInsightsClientInformation -UserInformation $defaultUserInformation -DeviceInformation $defaultDeviceInformation -Client $global:AIClient
+    if ($PSCmdlet.ShouldProcess('$global:AIClient', 'Set-ApplicationInsightsClientInformation')) {
+        $global:AIClient = Set-ApplicationInsightsClientInformation -UserInformation $defaultUserInformation -DeviceInformation $defaultDeviceInformation -Client $global:AIClient -WhatIf:$WhatIfPreference
+    }
 
     return $global:AIClient
 }
@@ -66,9 +96,36 @@ function Confirm-ApplicationInsightsClient {
 }
 
 function Set-ApplicationInsightsClientInformation {
-    [CmdletBinding()]
+    <#
+    .SYNOPSIS
+    Changes the Telemetry Client information
+
+    .DESCRIPTION
+    Changes the Telemetry Client information. This currently supports changing the user and Device information.
+    This information will be displayed in the Application Insights logging.
+
+    .PARAMETER Client
+    The Application Insights Telemetry Client. Defaults to $global:AIClient
+
+    .PARAMETER UserInformation
+    A hashtable with User Information
+
+    To find valid properties, Create a client and look at the current properties. $global:AIClient.context.User
+
+    .PARAMETER DeviceInformation
+    A hashtable with device information.
+
+    To find valid properties, Create a client and look at the current properties. $global:AIClient.context.Device
+
+    .EXAMPLE
+    $userInformation = @{AuthenticatedUserId = "John Doe"; UserAgent = "PS Core 7.2.5"} ; Set-ApplicationInsightsClientInformation -UserInformation $userInformation
+
+    .NOTES
+    Default settings are already applied when creating a new Application Insight client.
+    #>
+    [CmdletBinding(SupportsShouldProcess)]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [Microsoft.ApplicationInsights.TelemetryClient]
         $Client,
 
@@ -88,29 +145,40 @@ function Set-ApplicationInsightsClientInformation {
         if (-not $null -eq $DeviceInformation) {
             Write-Verbose ("Received 'Device' properties to set in the client")
         }
+
+        if ($null -eq $client) {
+            if ($null -eq $global:AIClient) {
+                write-error ("No Application insight client defined. Please use 'New-ApplicationInsightsClient' to create one.")
+                return;
+            } else {
+                $client = $global:AIClient
+            }
+        }
     }
 
     process {
         if (-not $null -eq $UserInformation) {
-
             foreach ($property in $Client.Context.User.psobject.Properties.name) {
                 Write-Verbose ("Checking property '$($property)' in supplied hashtable")
                 if (-not [string]::IsNullOrWhiteSpace($UserInformation[$property])) {
                     Write-Verbose ("Found property '$($property)' with a value. Changing value from '$($Client.Context.User.$property)' to '$($UserInformation[$property])'")
 
-                    $Client.Context.User.$property = $UserInformation[$property]
+                    if ($PSCmdlet.ShouldProcess("$Client.Context.User.$property", "$UserInformation[$property]")) {
+                        $Client.Context.User.$property = $UserInformation[$property]
+                    }
                 }
             }
         }
 
         if (-not $null -eq $DeviceInformation) {
-
             foreach ($property in $Client.Context.Device.psobject.Properties.name) {
                 Write-Verbose ("Checking property '$($property)' in supplied hashtable")
                 if (-not [string]::IsNullOrWhiteSpace($DeviceInformation[$property])) {
                     Write-Verbose ("Found property '$($property)' with a value. Changing value from '$($Client.Context.Device.$property)' to '$($DeviceInformation[$property])'")
 
-                    $Client.Context.Device.$property = $DeviceInformation[$property]
+                    if ($PSCmdlet.ShouldProcess("$Client.Context.User.$property", "$UserInformation[$property]")) {
+                        $Client.Context.Device.$property = $DeviceInformation[$property]
+                    }
                 }
             }
         }
@@ -130,10 +198,10 @@ function Write-ApplicationInsightsTrace {
     Write a simple Trace message to the Application Insights service.
 
     .DESCRIPTION
-    Write a simple Trace message to the Application Insights service. Supports several Seveity levels
+    Write a simple Trace message to the Application Insights service. Supports several Severity levels
 
     .PARAMETER Client
-    The Application Insights client you want to use to send the message to Application Insights.
+    This is the Telemetry Client used to send the message. If not specified, Defaults to "$global:AICient"
 
     .PARAMETER Message
     The message you want to send to Application Insights.
@@ -152,24 +220,22 @@ function Write-ApplicationInsightsTrace {
     .EXAMPLE
 
     $properties = [System.Collections.Generic.Dictionary[string, string]]::new()
-
     $properties.Add("target", "azkv-powershell-001")
     $properties.Add("type", "Keyvault")
-
     Write-ApplicationInsightsTrace -Client $client -Message "Created new keyvault" -SeverityLevel "Information" -properties $properties
 
     #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, HelpMessage = 'This is the Telemetry Client used to send the message. If not specified, Defaults to "$global:AICient"')]
         [Microsoft.ApplicationInsights.TelemetryClient]
         $Client,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, HelpMessage = "This is the message being send to Application Insights.")]
         [string]
         $Message,
 
-        [Parameter(Mandatory = $false)]
+        [Parameter(Mandatory = $false, HelpMessage = "This is the Severity Level of the message and will show as 0..5 in Application Insights")]
         [validateSet('Information', 'Verbose', 'Warning', 'Error', 'Critical')]
         [string]
         $SeverityLevel = "information",
@@ -353,7 +419,7 @@ function Write-ApplicationInsightsRequest {
         [System.Collections.Generic.Dictionary[string, string]]
         $properties = [System.Collections.Generic.Dictionary[string, string]]::new(),
 
-        [Parameter(Mandatory = $false, HelpMessage = "This is the URL that will be added as 'url' in Application Insights")]
+        [Parameter(Mandatory = $false, HelpMessage = "This is the URL that will be added as 'url' property in Application Insights")]
         [ValidateNotNullOrEmpty()]
         [string]
         $url
@@ -370,8 +436,11 @@ function Write-ApplicationInsightsRequest {
                 write-error ("No Application insight client defined. Please use 'New-ApplicationInsightsClient' to create one.")
                 return;
             } else {
+                Write-Verbose ("Using global client")
                 $client = $global:AIClient
             }
+        } else {
+            Write-Verbose ("Using supplied client")
         }
 
     }
@@ -384,6 +453,9 @@ function Write-ApplicationInsightsRequest {
         $requestTelemetry.ResponseCode = $responseCode
         $requestTelemetry.Success = $success
         $requestTelemetry.Timestamp = $StartTime
+
+        $client.Context.Operation.Name = $Name
+        $client.Context.Operation.Id = [guid]::NewGuid().Guid
 
         if ($properties.Count -ge 1) {
             Write-Verbose ("Received '$($properties.Count)' properties to add to the request.")
@@ -398,6 +470,7 @@ function Write-ApplicationInsightsRequest {
             $requestTelemetry.Url = $url
         }
 
+        Write-Verbose ("Sending request telemetry")
         $client.TrackRequest($requestTelemetry)
 
     }
@@ -409,6 +482,26 @@ function Write-ApplicationInsightsRequest {
 
 Export-ModuleMember -Function Write-ApplicationInsightsRequest
 Function Invoke-ApplicationInsightsMeasuredCommand {
+    <#
+    .SYNOPSIS
+    Invoke a scriptblock that is measured by Application Insights.
+
+    .DESCRIPTION
+    Invoke a scriptblock that is measured by Application Insights. This created a timespan and writes the timing to Application Insights. The output of the scriptblock is returned.
+
+    .PARAMETER Client
+    The Application Insights Telemetry Client. Defaults to $global:AIClient
+
+    .PARAMETER scriptblock
+    The scriptblock you wish to execute and measure.
+
+    .PARAMETER name
+    This is a name you wish to give to the scriptblock. This is used to identify the scriptblock in Application Insights.
+
+    .EXAMPLE
+    Invoke-ApplicationInsightsMeasuredCommand -ScriptBlock { start-sleep -Milliseconds 150 } -Name "Performing task X"
+
+    #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)]

@@ -1,0 +1,15 @@
+{
+    "grammarly.selectors": [
+        {
+            "language": "markdown",
+            "scheme": "untitled"
+        },
+        {
+            "language": "powershell",
+            "scheme": "file"
+        }
+    ],
+    "files.associations": {
+        "*.yaml": "home-assistant"
+    }
+}

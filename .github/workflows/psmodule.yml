@@ -1,0 +1,49 @@
+# This is a basic workflow to help you get started with Actions
+
+name: ApplicationInsights Module
+
+# Controls when the workflow will run
+on:
+  push:
+    branches: [ "main", "development" ]
+  pull_request:
+    branches: [ "main", "development" ]
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: true
+        default: 'warning'
+      tags:
+        description: 'Test scenario tags'
+
+permissions:
+  contents: read
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    name: Run PS ScriptAnalyzer on Module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run PSScriptAnalyzer
+        uses: microsoft/psscriptanalyzer-action@2044ae068e37d0161fa2127de04c19633882f061
+        with:
+          path: .\
+          recurse: true
+          output: results.sarif
+
+      # Upload the SARIF file generated in the previous step
+      - name: Upload SARIF results file
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: results.sarif
+      - name: Perform pestertest
+        shell: pwsh
+        run: |
+          Invoke-Pester -path .\ -Passthru -CI
