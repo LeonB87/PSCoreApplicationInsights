@@ -29,21 +29,4 @@ Describe "Client Properties" {
     It "Should have a specific default user" {
         $global:AIClient.Context.User.AuthenticatedUserId | should -Be (whoami)
     }
-
-
-    $updatedUserInformation = @{
-        AuthenticatedUserId = "MyNewUserId12345"
-        UserAgent           = "Modified User Agent"
-    }
-
-    # Set-ApplicationInsightsClientInformation -UserInformation $updatedUserInformation
-
-    # It "Should update the Authenticated User Id"{
-    #     $global:AIClient.Context.User.AuthenticatedUserId | should -Be "MyNewUserId12345"
-    # }
-
-    # It "Should update the UserAgent" {
-    #     $global:AIClient.Context.User.UserAgent | should -Be "Modified User Agent"
-    # }
-
 }
