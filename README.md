@@ -1,4 +1,4 @@
-# PSCoreApplicationInsightst
+# PSCoreApplicationInsights
 
 [![ApplicationInsights Module](https://github.com/LeonB87/PSCoreApplicationInsights/actions/workflows/psmodule.yml/badge.svg)](https://github.com/LeonB87/PSCoreApplicationInsights/actions/workflows/psmodule.yml)
 

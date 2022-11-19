@@ -207,7 +207,7 @@ function Write-ApplicationInsightsTrace {
     The message you want to send to Application Insights.
 
     .PARAMETER SeverityLevel
-    The severity level of the message. Default is 'Information'.
+    The severity level of the message. The default is 'Information'.
 
     Allowed values: 'Verbose', 'Information', 'Warning', 'Error', 'Critical'
 
