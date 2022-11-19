@@ -35,6 +35,7 @@ Describe "Client Properties" {
 
 Describe "Sending Trace" {
 
+    $VerbosePreference = 'Continue'
     $message = "This is my message"
 
     $verbose = Write-ApplicationInsightsTrace -Message $message -Verbose 4>&1
