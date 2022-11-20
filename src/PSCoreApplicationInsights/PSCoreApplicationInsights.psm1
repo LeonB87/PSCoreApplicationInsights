@@ -288,7 +288,7 @@ function Write-ApplicationInsightsTrace {
 Export-ModuleMember -Function Write-ApplicationInsightsTrace
 
 function Write-ApplicationInsightsMetric {
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [Parameter(Mandatory = $false)]
         [Microsoft.ApplicationInsights.TelemetryClient]
