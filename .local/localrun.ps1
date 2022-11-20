@@ -30,7 +30,7 @@ PROCESS {
 
     Write-Host '### Invoke script analyzer' -ForegroundColor Blue
 
-    invoke-scriptanalyzer -Path .\src\PSCoreApplicationInsights\ -ReportSummary -ExcludeRule 'PSAvoidGlobalVars'
+    invoke-scriptanalyzer -Path ".\src\PSCoreApplicationInsights\" -ReportSummary -ExcludeRule 'PSAvoidGlobalVars'
 
     Invoke-Pester -output Detailed
 
