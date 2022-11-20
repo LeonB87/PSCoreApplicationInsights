@@ -37,8 +37,8 @@ jobs:
           path: .\
           recurse: true
           output: results.sarif
-          excludeRule: '"PSAvoidGlobalVars"'
-          ignorePattern: '.local'
+          # excludeRule: '"PSAvoidGlobalVars"'
+          # ignorePattern: '.local'
 
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
