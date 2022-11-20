@@ -218,7 +218,6 @@ function Write-ApplicationInsightsTrace {
     Write-ApplicationInsightsTrace -Client $client -Message "This is a test message as Critical" -SeverityLevel "Critical"
 
     .EXAMPLE
-
     $properties = [System.Collections.Generic.Dictionary[string, string]]::new()
     $properties.Add("target", "azkv-powershell-001")
     $properties.Add("type", "Keyvault")
@@ -288,6 +287,35 @@ function Write-ApplicationInsightsTrace {
 Export-ModuleMember -Function Write-ApplicationInsightsTrace
 
 function Write-ApplicationInsightsMetric {
+    <#
+    .SYNOPSIS
+    Send a metric to Application Insights
+
+    .DESCRIPTION
+    Send a metric to Application insights. You can optionally add a Dictionary<string, string> with properties.
+
+    .PARAMETER Client
+    This is the Telemetry Client used to send the message. If not specified, Defaults to "$global:AICient"
+
+    .PARAMETER Name
+    This is the name of the metric. You can find this name in the "metric" blade under "Custom" in the "metric" drop-down. Or in the customMetric table.
+
+    .PARAMETER Metric
+    This is the actual metric
+
+    .PARAMETER properties
+    Optional properties to send with the metric
+
+    .EXAMPLE
+    Write-ApplicationInsightsMetric -Name "My Metric" -Metric "100"
+
+    .EXAMPLE
+    $properties = [System.Collections.Generic.Dictionary[string, string]]::new()
+    $properties.Add("target", "azkv-powershell-001")
+    $properties.Add("type", "Keyvault")
+    Write-ApplicationInsightsMetric -Name "My Metric" -Metric "100" -properties $properties
+
+    #>
     [CmdletBinding(SupportsShouldProcess)]
     param (
         [Parameter(Mandatory = $false)]
@@ -323,12 +351,16 @@ function Write-ApplicationInsightsMetric {
     }
     PROCESS {
         if ($properties.Count -ge 1) {
-            $client.TrackMetric($name, $Metric, $properties)
-            Write-Verbose ("Sent metric '$($Name)' with '$($Metric)' value and '$($properties.Count)' properties to Application Insights.")
+            if ($PSCmdlet.ShouldProcess("$($client.InstrumentationKey)", "Sent Metric '$($Name)' to Application Insights with metric '$($Metric)' and '$($properties.Count)' properties")) {
+                $client.TrackMetric($name, $Metric, $properties)
+                Write-Verbose ("Sent metric '$($Name)' with '$($Metric)' value and '$($properties.Count)' properties to Application Insights.")
+            }
         }
         else {
-            $client.TrackMetric($name, $Metric)
-            Write-Verbose ("Sent metric '$($Name)' with '$($Metric)' value to Application Insights.")
+            if ($PSCmdlet.ShouldProcess("$($client.InstrumentationKey)", "Sent metric '$($Name)' with '$($Metric)' value to Application Insights.")) {
+                $client.TrackMetric($name, $Metric)
+                Write-Verbose ("Sent metric '$($Name)' with '$($Metric)' value to Application Insights.")
+            }
         }
 
     }
@@ -339,7 +371,42 @@ function Write-ApplicationInsightsMetric {
 }
 
 Export-ModuleMember -Function Write-ApplicationInsightsMetric
+
 function Write-ApplicationInsightsException {
+    <#
+    .SYNOPSIS
+    Write an exception to application insight
+
+    .DESCRIPTION
+    Write an exception to application insight. You can pass a  [System.Exception] object, or a string that will be changed to an [System.Exception].
+
+    .PARAMETER Client
+    This is the Telemetry Client used to send the message. If not specified, Defaults to "$global:AICient"
+
+    .PARAMETER Exception
+    the System.Exception object to send to Application Insight
+
+    .PARAMETER ExceptionString
+    Add a string that will be set to a new [System.Exception] object.
+
+    .PARAMETER Metrics
+    (Optional) a Dictionary[string, double] of metric to add to the 'customMeasurements' column
+
+    .PARAMETER properties
+    (Optional) a Dictionary[string, string] of metric to add to the 'customDimensions' column
+
+    .EXAMPLE
+    try { 0/0 } catch {$exception = $_}
+    Write-ApplicationInsightsException -Exception $exception.Exception
+
+    .EXAMPLE
+    try { 0/0 } catch {$exception = $_}
+    $properties = [System.Collections.Generic.Dictionary[string, string]]::new()
+    $properties.Add("target", "azkv-powershell-001")
+    $properties.Add("type", "Keyvault")
+    Write-ApplicationInsightsException -Exception $exception.Exception -properties $properties
+
+    #>
     [CmdletBinding(DefaultParameterSetName = "Exception")]
     param (
         [Parameter(Mandatory = $false)]
@@ -391,6 +458,43 @@ function Write-ApplicationInsightsException {
 Export-ModuleMember -Function Write-ApplicationInsightsException
 
 function Write-ApplicationInsightsRequest {
+    <#
+    .SYNOPSIS
+    Short description
+
+    .DESCRIPTION
+    Long description
+
+    .PARAMETER Client
+    Parameter description
+
+    .PARAMETER Name
+    Parameter description
+
+    .PARAMETER StartTime
+    Parameter description
+
+    .PARAMETER Duration
+    Parameter description
+
+    .PARAMETER responseCode
+    Parameter description
+
+    .PARAMETER success
+    Parameter description
+
+    .PARAMETER properties
+    Parameter description
+
+    .PARAMETER url
+    Parameter description
+
+    .EXAMPLE
+    An example
+
+    .NOTES
+    General notes
+    #>
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)]
@@ -402,15 +506,15 @@ function Write-ApplicationInsightsRequest {
         [String]
         $Name,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [System.DateTimeOffset]
-        $StartTime,
+        $StartTime = [System.DateTimeOffset]::Now,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
         [Timespan]
-        $Duration,
+        $Duration = [Timespan]::new(0,0,0),
 
         [Parameter(Mandatory = $false)]
         [ValidateNotNullOrEmpty()]
