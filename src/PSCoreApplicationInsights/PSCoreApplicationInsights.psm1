@@ -163,7 +163,7 @@ function Set-ApplicationInsightsClientInformation {
                 if (-not [string]::IsNullOrWhiteSpace($UserInformation[$property])) {
                     Write-Verbose ("Found property '$($property)' with a value. Changing value from '$($Client.Context.User.$property)' to '$($UserInformation[$property])'")
 
-                    if ($PSCmdlet.ShouldProcess("$Client.Context.User.$property", "$UserInformation[$property]")) {
+                    if ($PSCmdlet.ShouldProcess("Set Userinformation property $($Client.Context.User.$property)", "$($UserInformation[$property])")) {
                         $Client.Context.User.$property = $UserInformation[$property]
                     }
                 }
@@ -176,7 +176,7 @@ function Set-ApplicationInsightsClientInformation {
                 if (-not [string]::IsNullOrWhiteSpace($DeviceInformation[$property])) {
                     Write-Verbose ("Found property '$($property)' with a value. Changing value from '$($Client.Context.Device.$property)' to '$($DeviceInformation[$property])'")
 
-                    if ($PSCmdlet.ShouldProcess("$Client.Context.User.$property", "$UserInformation[$property]")) {
+                    if ($PSCmdlet.ShouldProcess("Set Device property $($Client.Context.User.$property)", "$($UserInformation[$property])")) {
                         $Client.Context.Device.$property = $DeviceInformation[$property]
                     }
                 }
@@ -225,7 +225,7 @@ function Write-ApplicationInsightsTrace {
     Write-ApplicationInsightsTrace -Client $client -Message "Created new keyvault" -SeverityLevel "Information" -properties $properties
 
     #>
-    [CmdletBinding()]
+    [CmdletBinding(SupportsShouldProcess)]
     param (
         [Parameter(Mandatory = $false, HelpMessage = 'This is the Telemetry Client used to send the message. If not specified, Defaults to "$global:AICient"')]
         [Microsoft.ApplicationInsights.TelemetryClient]
@@ -264,12 +264,19 @@ function Write-ApplicationInsightsTrace {
     }
     PROCESS {
         if ($properties.Count -ge 1) {
-            $Client.TrackTrace($Message, [Microsoft.ApplicationInsights.DataContracts.SeverityLevel]::$($SeverityLevel), $properties)
-            Write-Verbose ("Sent message '$($Message)' with '$($properties.Count)' properties to Application Insights.")
+            if ($PSCmdlet.ShouldProcess("$($client.InstrumentationKey)", "Sent message '$($Message)' with '$($properties.Count)' properties to Application Insights with severity '$($SeverityLevel)'")) {
+                $Client.TrackTrace($Message, [Microsoft.ApplicationInsights.DataContracts.SeverityLevel]::$($SeverityLevel), $properties)
+                Write-Verbose ("Sent message '$($Message)' with '$($properties.Count)' properties to Application Insights.")
+            }
+
         }
         else {
-            $Client.TrackTrace($Message, [Microsoft.ApplicationInsights.DataContracts.SeverityLevel]::$($SeverityLevel))
-            Write-Verbose ("Sent message '$($Message)' to Application Insights.")
+
+            if ($PSCmdlet.ShouldProcess("$($client.InstrumentationKey)", "Sent message '$($Message)' to Application Insights with severity '$($SeverityLevel)'")) {
+                $Client.TrackTrace($Message, [Microsoft.ApplicationInsights.DataContracts.SeverityLevel]::$($SeverityLevel))
+                Write-Verbose ("Sent message '$($Message)' to Application Insights.")
+            }
+
         }
     }
     END {
