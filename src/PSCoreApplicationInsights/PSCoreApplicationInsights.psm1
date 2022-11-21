@@ -374,6 +374,9 @@ Export-ModuleMember -Function Write-ApplicationInsightsMetric
 
 function Write-ApplicationInsightsException {
     <#
+
+
+
     .SYNOPSIS
     Write an exception to application insight
 
@@ -414,20 +417,24 @@ function Write-ApplicationInsightsException {
         $Client,
 
         [Parameter(Mandatory = $true, ParameterSetName = "Exception")]
-        [System.Exception]
+        [System.Management.Automation.ErrorRecord]
         $Exception,
 
         [Parameter(Mandatory = $true, ParameterSetName = "StringException")]
         [String]
         $ExceptionString,
 
-        [Parameter(Mandatory = $false, HelpMessage = "This is a dictionary<string, double> with additional information that will be added as 'customMeasurements' in Application Insights")]
-        [System.Collections.Generic.Dictionary[string, double]]
-        $Metrics = [System.Collections.Generic.Dictionary[string, double]]::new(),
+        # [Parameter(Mandatory = $false, HelpMessage = "This is a dictionary<string, double> with additional information that will be added as 'customMeasurements' in Application Insights")]
+        # [System.Collections.Generic.Dictionary[string, double]]
+        # $Metrics = [System.Collections.Generic.Dictionary[string, double]]::new(),
 
-        [Parameter(Mandatory = $false, HelpMessage = "This is a dictionary<string, string> with additional information that will be added as 'customDimensions' in Application Insights")]
-        [System.Collections.Generic.Dictionary[string, string]]
-        $properties = [System.Collections.Generic.Dictionary[string, string]]::new()
+        # [Parameter(Mandatory = $false, HelpMessage = "This is a dictionary<string, string> with additional information that will be added as 'customDimensions' in Application Insights")]
+        # [System.Collections.Generic.Dictionary[string, string]]
+        # $properties = [System.Collections.Generic.Dictionary[string, string]]::new(),
+
+        [Parameter(Mandatory = $false)]
+        [ValidateNotNullOrEmpty()]
+        [Guid]$operationId = [Guid]::newGuid()
     )
     BEGIN {
         Write-Verbose ("Running in Parameterset '$($PSCmdlet.ParameterSetName)'")
@@ -444,9 +451,13 @@ function Write-ApplicationInsightsException {
         if ($PSCmdlet.ParameterSetName -eq "StringException") {
             $Exception = [System.Exception]::new($ExceptionString)
         }
+
+        $exceptionTelemetry = [Microsoft.ApplicationInsights.DataContracts.ExceptionTelemetry]::new($exception.Exception)
+        $exceptionTelemetry.context.Operation.id = $operationId.Guid
+        $exceptionTelemetry.ProblemId = $exception.Exception.Message
     }
     PROCESS {
-        $client.TrackException($Exception, $properties, $Metrics)
+        $client.TrackException($exceptionTelemetry)
         Write-Verbose ("Sent exception '$($Exception)' with '$($Metrics.Count)' metrics and '$($properties.Count)' properties to Application Insights.")
     }
     END {
@@ -533,7 +544,11 @@ function Write-ApplicationInsightsRequest {
         [Parameter(Mandatory = $false, HelpMessage = "This is the URL that will be added as 'url' property in Application Insights")]
         [ValidateNotNullOrEmpty()]
         [string]
-        $url
+        $url,
+
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [Guid]$operationId
     )
     BEGIN {
         Write-Verbose ("Received '$($Name)' name for the request")
@@ -564,9 +579,8 @@ function Write-ApplicationInsightsRequest {
         $requestTelemetry.ResponseCode = $responseCode
         $requestTelemetry.Success = $success
         $requestTelemetry.Timestamp = $StartTime
-
-        $client.Context.Operation.Name = $Name
-        $client.Context.Operation.Id = [guid]::NewGuid().Guid
+        $requestTelemetry.Context.Operation.Id = $operationId
+        $requestTelemetry.Context.Operation.Name = $name
 
         if ($properties.Count -ge 1) {
             Write-Verbose ("Received '$($properties.Count)' properties to add to the request.")
